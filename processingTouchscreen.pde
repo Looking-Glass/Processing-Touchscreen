@@ -1,3 +1,13 @@
+//you will need to install the oscp5 processing library before running 
+//in processing, go to sketch->import library->add library
+//and search for oscp5.  Press install et voilá
+
+//finally, update the portName string below to match the name
+//of the touchscreen's serial port
+//a good way to test this is to plug in the touchscreen and look
+//to see what new serial ports showed up
+String portName = "/dev/tty.HC-05-DevB-2";  //change this to whatever your serial port name is
+
 import processing.serial.*;
 
 Serial serial;  // Create object from Serial class
@@ -16,8 +26,7 @@ void setup()
   touches=new ArrayList<Touch>();
   currentTouches=new ArrayList<Touch>();
   println(Serial.list());
-  String portName = "/dev/tty.HC-05-DevB-2";
-  serial = new Serial(this, portName, 115200);
+  serial = new Serial(this, portName, 9600);
   serial.bufferUntil(lineFeed);
 }
 
@@ -96,7 +105,7 @@ void serialEvent(Serial p) {
         {
           Touch touch=(Touch)currentTouches.get(i);
           boolean existingTouch=false;
-          Touch t=new Touch(0, new PVector(0,0));
+          Touch t=new Touch(0, new PVector(0, 0));
           for (int j=0; j<touches.size (); j++)
           {
             t=(Touch)touches.get(j);
@@ -174,4 +183,3 @@ void printStatus()
   }
   println();
 }
-

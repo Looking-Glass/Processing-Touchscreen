@@ -1,13 +1,3 @@
-//you will need to install the oscp5 processing library before running 
-//in processing, go to sketch->import library->add library
-//and search for oscp5.  Press install et voilá
-
-//finally, update the portName string below to match the name
-//of the touchscreen's serial port
-//a good way to test this is to plug in the touchscreen and look
-//to see what new serial ports showed up
-String portName = "/dev/tty.HC-05-DevB-2";  //change this to whatever your serial port name is
-
 import processing.serial.*;
 
 Serial serial;  // Create object from Serial class
@@ -19,14 +9,28 @@ boolean debug=false;
 float tsWidth=800;
 float tsHeight=500;
 int numLines=0;
+float xMin=35;
+float xMax=770;
+float yMin=20;
+float yMax=450;
+
+void settings()
+{
+  size(800, 500);
+}
+
 void setup() 
 {
-  size(800, 800);
   setupOsc();
   touches=new ArrayList<Touch>();
   currentTouches=new ArrayList<Touch>();
   println(Serial.list());
+  String portName = "/dev/tty.usbserial-A503JDGU";
   serial = new Serial(this, portName, 9600);
+  println("waiting to fill up the serial buffer with init messages");
+  delay(5000);
+  while(serial.available()>0)
+    serial.read();
   serial.bufferUntil(lineFeed);
 }
 
@@ -38,14 +42,19 @@ void draw()
   for (int i=0; i<touches.size (); i++)
   {
     Touch t=(Touch)touches.get(i);
-    ellipse(t.position.x, t.position.y, 10, 10);
+    PVector mappedTouch=touchMapping(t.position);
+ //   ellipse(t.position.x, t.position.y, 10, 10);
+    ellipse((int)((1-mappedTouch.x)*(float)width), (int)((float)height*(1-mappedTouch.y)), 10, 10);
+    println(i+"--"+mappedTouch+"  "+t.position);
   }
+  if(touches.size()>0)
+  println();
 }
 
 void serialEvent(Serial p) { 
   String line=trim(p.readString());  //remove linefeed and whitespace characters
-  println(line);
-  printStatus();
+//  println(line);
+//  printStatus();
   // if (debug)
   //   println("line:"+line);
   if (line.length()>0)
@@ -105,7 +114,7 @@ void serialEvent(Serial p) {
         {
           Touch touch=(Touch)currentTouches.get(i);
           boolean existingTouch=false;
-          Touch t=new Touch(0, new PVector(0, 0));
+          Touch t=new Touch(0, new PVector(0,0));
           for (int j=0; j<touches.size (); j++)
           {
             t=(Touch)touches.get(j);
@@ -182,4 +191,10 @@ void printStatus()
     print(t.touchID+" ");
   }
   println();
+}
+
+PVector touchMapping(PVector touch)
+{
+  PVector mapped=new PVector(map(touch.x,xMin, xMax, 0,1), map(touch.y, yMin, yMax, 0,1));
+  return mapped;
 }
